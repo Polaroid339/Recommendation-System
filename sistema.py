@@ -15,7 +15,7 @@ def get_recomendacoes(user_id):
     """
     # Filtra os memes que o usuário curtiu
     user_data = memes_dataset[(memes_dataset['user_id'] == user_id) & (memes_dataset['curtido'] == 1)]
-    
+
     if user_data.empty:
         print(f'Nenhum dado encontrado para o usuário {user_id}')
         return []
