@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 system = Flask(__name__)
 
-# Carrega o dataset com colunas 'user_id', 'meme_id', 'meme_tags', 'curtido'
+# Carrega o dataset
 memes_dataset = pd.read_csv("dataset.csv")
 
 
