@@ -5,7 +5,7 @@ from sklearn.neighbors import NearestNeighbors
 from flask import Flask, request, jsonify
 
 """
-Sistema de recomendação baseado em SciKit Learn, onde cruzae trata os dados
+Sistema de recomendação baseado em SciKit Learn, onde cruza e trata os dados
 dos usuários, retornando um arquivo json com os memes recomendados baseado
 nas interações do usuário. O sistema é exposto em microserviço com Flask.
 """
@@ -18,8 +18,7 @@ user_interactions = pd.read_csv('user_interactions.csv', low_memory=False)
 memes = memes[['meme_id', 'meme_tags', 'curtidas']]
 
 # Renomeando as variáveis para facilitar a visualização
-memes.rename(columns={'meme_id': 'ID_MEME',
-             'meme_tags': 'TAGS', 'curtidas': 'CURTIDAS'}, inplace=True)
+memes.rename(columns={'meme_id': 'ID_MEME','meme_tags': 'TAGS', 'curtidas': 'CURTIDAS'}, inplace=True)
 
 # Cruzar interações dos usuários com os memes
 merged_data = pd.merge(user_interactions, memes,
