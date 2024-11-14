@@ -1,58 +1,75 @@
-from flask import Flask, jsonify, request
 import pandas as pd
+import numpy as np
+from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-from sklearn.feature_extraction.text import CountVectorizer
+from flask import Flask, request, jsonify
 
-system = Flask(__name__)
+"""
+Sistema de recomendação baseado em SciKit Learn, onde cruzae trata os dados
+dos usuários, retornando um arquivo json com os memes recomendados baseado
+nas interações do usuário. O sistema é exposto em microserviço com Flask.
+"""
 
-# Carrega o dataset
-memes_dataset = pd.read_csv("dataset.csv")
+# Datasets
+memes = pd.read_csv('memes_dataset.csv', low_memory=False)
+user_interactions = pd.read_csv('user_interactions.csv', low_memory=False)
 
+# Filtrando as colunas necessárias
+memes = memes[['meme_id', 'meme_tags', 'curtidas']]
 
-def get_recomendacoes(user_id):
-    """
-    Recomenda memes com base nas tags dos memes que o usuário curtiu.
-    """
-    # Filtra os memes que o usuário curtiu
-    user_data = memes_dataset[(memes_dataset['user_id'] == user_id) & (memes_dataset['curtido'] == 1)]
+# Renomeando as variáveis para facilitar a visualização
+memes.rename(columns={'meme_id': 'ID_MEME',
+             'meme_tags': 'TAGS', 'curtidas': 'CURTIDAS'}, inplace=True)
 
-    if user_data.empty:
-        print(f'Nenhum dado encontrado para o usuário {user_id}')
-        return []
+# Cruzar interações dos usuários com os memes
+merged_data = pd.merge(user_interactions, memes,
+                       left_on='meme_id', right_on='ID_MEME')
 
-    # Concatena todas as tags dos memes que o usuário curtiu
-    tags_usuario = " ".join(user_data['meme_tags'])
+# Matriz de interações
+user_meme_matrix = merged_data.pivot_table(
+    index='user_id', columns='ID_MEME', values='interacao', fill_value=0)
 
-    # Vetoriza todas as tags no dataset
-    vetorizar = CountVectorizer()
-    tags_vetorizadas = vetorizar.fit_transform(memes_dataset['meme_tags'])
+# Criar uma matriz esparsa de interações
+user_meme_sparse = csr_matrix(user_meme_matrix)
 
-    # Treina o modelo com as tags vetorizadas
-    modelo = NearestNeighbors(n_neighbors=4)
-    modelo.fit(tags_vetorizadas)
+# Treinando o modelo
+modelo = NearestNeighbors(algorithm='brute')
+modelo.fit(user_meme_sparse)
 
-    # Vetoriza as tags concatenadas do usuário
-    usuario_tags_vetorizadas = vetorizar.transform([tags_usuario])
-    recomendacoes = modelo.kneighbors(usuario_tags_vetorizadas, return_distance=False)
+app = Flask(__name__)
 
-    # Gera a lista de IDs dos memes recomendados
-    memes_recomendados = memes_dataset.iloc[recomendacoes[0]]['meme_id'].tolist()
-    print(f"Memes recomendados para o usuário {user_id}:", memes_recomendados)
+@app.route('/recomendar', methods=['GET'])
+def recomendar_memes():
+    
+    """Exemplo: http://127.0.0.1:5000/recomendar?user_id=1
+    Caso não haja memes suficientes, recomenda os com mais curtidas"""
 
-    # Remove memes que o usuário já curtiu
-    memes_recomendados = [meme for meme in memes_recomendados if meme not in user_data['meme_id'].tolist()]
+    user_id = request.args.get('user_id', type=int)
+    
+    # Definir o limite máximo de memes para recomendar
+    max_recomendacoes = 10
 
-    return memes_recomendados
+    if user_id not in user_meme_matrix.index:
+        return jsonify({"erro": "Usuário não encontrado ou sem interações suficientes."})
 
+    usuario_interacoes = user_meme_matrix.loc[user_id].values.reshape(1, -1)
 
-@system.route('/recomendacoes/<int:user_id>', methods=['GET'])
-def recomendacoes(user_id):
-    """
-    Retorna um JSON com recomendações de memes para um usuário específico.
-    """
-    memes_recomendados = get_recomendacoes(user_id)
-    return jsonify({'recomendacoes': memes_recomendados})
+    num_memes_disponiveis = len(user_meme_matrix.columns)
+    max_neighbors = min(max_recomendacoes, num_memes_disponiveis)
 
+    # Encontrar os memes mais semelhantes
+    distancias, indices = modelo.kneighbors(usuario_interacoes, n_neighbors=max_neighbors)
+
+    # Verificar se os índices estão dentro do limite de colunas
+    indices_validos = [i for i in indices.flatten() if i < len(user_meme_matrix.columns)]
+
+    # Garantir que não haja índices fora do limite
+    memes_recomendados = user_meme_matrix.columns[indices_validos].tolist()
+
+    # Detalhes dos memes recomendados
+    detalhes_memes = memes[memes['ID_MEME'].isin(memes_recomendados)].to_dict(orient='records')
+
+    return jsonify({"recomendacoes": detalhes_memes})
 
 if __name__ == '__main__':
-    system.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)
