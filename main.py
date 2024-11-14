@@ -21,18 +21,18 @@ memes = memes[['meme_id', 'meme_tags', 'curtidas']]
 memes.rename(columns={'meme_id': 'ID_MEME','meme_tags': 'TAGS', 'curtidas': 'CURTIDAS'}, inplace=True)
 
 # Cruzar interações dos usuários com os memes
-merged_data = pd.merge(user_interactions, memes,
+dados_cruzados = pd.merge(user_interactions, memes,
                        left_on='meme_id', right_on='ID_MEME')
 
 # Matriz de interações
-user_meme_matrix = merged_data.pivot_table(
+user_meme_matriz = dados_cruzados.pivot_table(
     index='user_id', columns='ID_MEME', values='interacao', fill_value=0)
 
 # Certificar-se de que o index (user_id) seja tratado como string
-user_meme_matrix.index = user_meme_matrix.index.astype(str)
+user_meme_matriz.index = user_meme_matriz.index.astype(str)
 
 # Criar uma matriz esparsa de interações
-user_meme_sparse = csr_matrix(user_meme_matrix)
+user_meme_sparse = csr_matrix(user_meme_matriz)
 
 # Treinando o modelo
 modelo = NearestNeighbors(algorithm='brute')
@@ -51,29 +51,29 @@ def recomendar_memes():
     # Definir o limite máximo de memes para recomendar
     max_recomendacoes = 3
 
-    if user_id not in user_meme_matrix.index:
+    if user_id not in user_meme_matriz.index:
         return jsonify({"erro": "Usuário não encontrado ou sem interações suficientes."})
 
-    usuario_interacoes = user_meme_matrix.loc[user_id].values.reshape(1, -1)
+    usuario_interacoes = user_meme_matriz.loc[user_id].values.reshape(1, -1)
 
-    num_memes_disponiveis = len(user_meme_matrix.columns)
+    num_memes_disponiveis = len(user_meme_matriz.columns)
     max_neighbors = min(max_recomendacoes, num_memes_disponiveis)
 
     # Encontrar os memes mais semelhantes
     distancias, indices = modelo.kneighbors(usuario_interacoes, n_neighbors=max_neighbors)
 
     # Verificar se os indices estão dentro do limite de colunas
-    indices_validos = [i for i in indices.flatten() if i < len(user_meme_matrix.columns)]
+    indices_validos = [i for i in indices.flatten() if i < len(user_meme_matriz.columns)]
 
     # Garantir que não haja indices fora do limite
-    memes_recomendados = user_meme_matrix.columns[indices_validos].tolist()
+    memes_recomendados = user_meme_matriz.columns[indices_validos].tolist()
 
     # Detalhes dos memes recomendados
     detalhes_memes = memes[memes['ID_MEME'].isin(memes_recomendados)]
 
     # Ordenar os memes recomendados pelas curtidas e média de interações (decrescente)
     detalhes_memes['media_interacao'] = detalhes_memes['ID_MEME'].apply(
-        lambda x: user_meme_matrix[x].mean() if x in user_meme_matrix.columns else 0
+        lambda x: user_meme_matriz[x].mean() if x in user_meme_matriz.columns else 0
     )
     detalhes_memes = detalhes_memes.sort_values(by=['media_interacao', 'CURTIDAS'], ascending=False)
 
