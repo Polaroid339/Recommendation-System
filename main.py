@@ -46,7 +46,7 @@ def recomendar_memes():
     user_id = request.args.get('user_id', type=int)
     
     # Definir o limite máximo de memes para recomendar
-    max_recomendacoes = 10
+    max_recomendacoes = 3
 
     if user_id not in user_meme_matrix.index:
         return jsonify({"erro": "Usuário não encontrado ou sem interações suficientes."})
@@ -59,16 +59,19 @@ def recomendar_memes():
     # Encontrar os memes mais semelhantes
     distancias, indices = modelo.kneighbors(usuario_interacoes, n_neighbors=max_neighbors)
 
-    # Verificar se os índices estão dentro do limite de colunas
+    # Verificar se os indices estão dentro do limite de colunas
     indices_validos = [i for i in indices.flatten() if i < len(user_meme_matrix.columns)]
 
-    # Garantir que não haja índices fora do limite
+    # Garantir que não haja indices fora do limite
     memes_recomendados = user_meme_matrix.columns[indices_validos].tolist()
 
     # Detalhes dos memes recomendados
-    detalhes_memes = memes[memes['ID_MEME'].isin(memes_recomendados)].to_dict(orient='records')
+    detalhes_memes = memes[memes['ID_MEME'].isin(memes_recomendados)]
 
-    return jsonify({"recomendacoes": detalhes_memes})
+    # Ordenar os memes recomendados pelas curtidas (decrescente)
+    detalhes_memes = detalhes_memes.sort_values(by='CURTIDAS', ascending=False)
+
+    return jsonify({"recomendacoes": detalhes_memes.to_dict(orient='records')})
 
 if __name__ == '__main__':
     app.run(debug=True)
