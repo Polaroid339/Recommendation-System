@@ -75,3 +75,14 @@ def recomendar_memes():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+"""
+Possiveis alterações para o sistema de recomendação final:
+
+-adicionar recomendação colaborativa
+-modificar para mostrar memes mais recentes
+-modificar para mostrar memes com mais likes
+-não mostrar memes ja vistos
+-integrar ao db final
+-corrigir possiveis bugs e falhas
+"""
