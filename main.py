@@ -68,21 +68,14 @@ def recomendar_memes():
     # Detalhes dos memes recomendados
     detalhes_memes = memes[memes['ID_MEME'].isin(memes_recomendados)]
 
-    # Ordenar os memes recomendados pelas curtidas (decrescente)
-    detalhes_memes = detalhes_memes.sort_values(by='CURTIDAS', ascending=False)
+    # Ordenar os memes recomendados pelas curtidas e média de interações(decrescente)
+    detalhes_memes['media_interacao'] = detalhes_memes['ID_MEME'].apply(
+        lambda x: user_meme_matrix[x].mean() if x in user_meme_matrix.columns else 0
+    )
+    detalhes_memes = detalhes_memes.sort_values(by=['media_interacao', 'CURTIDAS'], ascending=False)
 
+    # Retornar os memes recomendados ordenados por interação e curtidas
     return jsonify({"recomendacoes": detalhes_memes.to_dict(orient='records')})
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-"""
-Possiveis alterações para o sistema de recomendação final:
-
--adicionar recomendação colaborativa
--modificar para mostrar memes mais recentes
--modificar para mostrar memes com mais likes
--não mostrar memes ja vistos
--integrar ao db final
--corrigir possiveis bugs e falhas
-"""
