@@ -59,10 +59,10 @@ def recomendar_memes():
     # Encontrar os memes mais semelhantes
     distancias, indices = modelo.kneighbors(usuario_interacoes, n_neighbors=max_neighbors)
 
-    # Verificar se os índices estão dentro do limite de colunas
+    # Verificar se os indices estão dentro do limite de colunas
     indices_validos = [i for i in indices.flatten() if i < len(user_meme_matrix.columns)]
 
-    # Garantir que não haja índices fora do limite
+    # Garantir que não haja indices fora do limite
     memes_recomendados = user_meme_matrix.columns[indices_validos].tolist()
 
     # Detalhes dos memes recomendados
@@ -72,3 +72,14 @@ def recomendar_memes():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+"""
+Possiveis alterações para o sistema de recomendação final:
+
+-adicionar recomendação colaborativa
+-modificar para mostrar memes mais recentes
+-modificar para mostrar memes com mais likes
+-não mostrar memes ja vistos
+-integrar ao db final
+-corrigir possiveis bugs e falhas
+"""
