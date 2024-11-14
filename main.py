@@ -28,6 +28,9 @@ merged_data = pd.merge(user_interactions, memes,
 user_meme_matrix = merged_data.pivot_table(
     index='user_id', columns='ID_MEME', values='interacao', fill_value=0)
 
+# Certificar-se de que o index (user_id) seja tratado como string
+user_meme_matrix.index = user_meme_matrix.index.astype(str)
+
 # Criar uma matriz esparsa de interações
 user_meme_sparse = csr_matrix(user_meme_matrix)
 
@@ -43,7 +46,7 @@ def recomendar_memes():
     """Exemplo: http://127.0.0.1:5000/recomendar?user_id=1
     Caso não haja memes suficientes, recomenda os com mais curtidas"""
 
-    user_id = request.args.get('user_id', type=int)
+    user_id = request.args.get('user_id', type=str)  # Alterado para string
     
     # Definir o limite máximo de memes para recomendar
     max_recomendacoes = 3
@@ -68,7 +71,7 @@ def recomendar_memes():
     # Detalhes dos memes recomendados
     detalhes_memes = memes[memes['ID_MEME'].isin(memes_recomendados)]
 
-    # Ordenar os memes recomendados pelas curtidas e média de interações(decrescente)
+    # Ordenar os memes recomendados pelas curtidas e média de interações (decrescente)
     detalhes_memes['media_interacao'] = detalhes_memes['ID_MEME'].apply(
         lambda x: user_meme_matrix[x].mean() if x in user_meme_matrix.columns else 0
     )
