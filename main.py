@@ -5,7 +5,7 @@ from sklearn.neighbors import NearestNeighbors
 from flask import Flask, request, jsonify
 
 """
-Sistema de recomendação baseado em SciKit Learn, onde cruzae trata os dados
+Sistema de recomendação baseado em SciKit Learn, onde cruza e trata os dados
 dos usuários, retornando um arquivo json com os memes recomendados baseado
 nas interações do usuário. O sistema é exposto em microserviço com Flask.
 """
