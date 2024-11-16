@@ -1,13 +1,6 @@
-meme_id,meme_tags,curtidas
-101,"carlinhos, anime",5
-102,"anime, comedy_hub",10
-103,"carlinhos, balao_de_fala",15
-104,"comedy_hub, anime",20
-105,"carlinhos, meme",25
-106,"meme, balao_de_fala",30
-107,"engraçado, humor, internet",35
-108,"gato, animal, fofo",40
-109,"programação, python, código",45
-110,"meme, trabalho, escritório",50
-111,"carlinhos, comedy_hub", 80
-112,"filme, ação, cinema",55
+ID_MEME,TITLE,DESCRIPTION,URL,DATE_POST,POSTED_BY,TAG_IDS,CURTIDAS
+id-de-meme-1,MEME 1,Descrição 1,http://meme1.url,2024-11-01,id-de-usuario-5,"id-tag-carlinhos, id-tag-shitpost",100
+id-de-meme-2,MEME 2,Descrição 2,http://meme2.url,2024-11-02,id-de-usuario-4,"id-tag-anime, id-tag-shitpost",150
+id-de-meme-3,MEME 3,Descrição 3,http://meme3.url,2024-11-03,id-de-usuario-6,"id-tag-carlinhos, id-tag-anime",130
+id-de-meme-4,MEME 4,Descrição 4,http://meme4.url,2024-11-04,id-de-usuario-3,"id-tag-balao-de-fala, tag-carlinhos",120
+id-de-meme-5,MEME 5,Descrição 5,http://meme5.url,2024-11-05,id-de-usuario-1,"id-tag-anime, tag-balao-de-fala",140
